@@ -263,7 +263,7 @@ def main():
 			pred = model(mel_batch, img_batch)
 
 		pred = pred.cpu().numpy().transpose(0, 2, 3, 1) * 255.
-		
+
 		for p, f, c in zip(pred, frames, coords):
 			y1, y2, x1, x2 = c
 			p = cv2.resize(p.astype(np.uint8), (x2 - x1, y2 - y1))
@@ -273,7 +273,17 @@ def main():
 
 	out.release()
 
-	command = 'ffmpeg -y -i {} -i {} -strict -2 -q:v 1 {}'.format(args.audio, 'temp/result.avi', args.outfile)
+	# command = 'ffmpeg -y -i {} -i {} -strict -2 -q:v 1 {}'.format(args.audio, 'temp/result.avi', args.outfile)
+
+	command = (
+	    f'ffmpeg -y '
+	    '-i temp/result.avi '
+		f'-i {args.audio} '
+   		'-c:v libx264 -crf 16 -preset slow '   # crf 값 내리면 화질 올라가는 듯 
+    	'-c:a aac -b:a 192k '
+    	'-vf "scale=iw:ih" '
+    	f'{args.outfile}'
+ 	)
 	subprocess.call(command, shell=platform.system() != 'Windows')
 
 if __name__ == '__main__':
